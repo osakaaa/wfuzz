@@ -66,6 +66,9 @@ Options:
 --filter <filter>	    : Filter responses using the specified expression (Use BBB for taking values from baseline)
 			      It should be composed of: c,l,w,h/and,or/=,<,>,!=,<=,>=
 
+--url-file=<filename>       : File containing list of URLs to fuzz (should be already transformed to WFUZZ notation (e.g. http://google.com/FUZZ).
+                              If this option is specified there is no need to additionaly specify target
+
 Keyword: FUZZ, ..., FUZnZ  wherever you put these keywords wfuzz will replace them with the values of the specified payload. 
 Baseline: FUZZ{baseline_value} FUZZ will be replaced by baseline_value. It will be the first request performed and could be used as a base for filtering.
 
