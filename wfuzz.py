@@ -18,27 +18,31 @@ printer = None
 try:
     # parse command line 
     session_options = CLParser(sys.argv).parse_cl()
+    genreqs = session_options.get("genreq")
+    #Kostyling (e.g. krutches)
+    # Here we try to get list of urls's from session_options and then put it back one by one so basic fuzzing mechanism do not broke
+    for genreq in genreqs:
+        # Create fuzzer's engine
+        session_options.set("genreq",genreq)
+        fz = Fuzzer(session_options)
 
-    # Create fuzzer's engine
-    fz = Fuzzer(session_options)
+        if session_options.get("interactive"):
+            # initialise controller
+            try:
+                kb = KeyPress()
+            except ImportError, e:
+                raise FuzzException(FuzzException.FATAL, "Error importing necessary modules for interactive mode: %s" % str(e))
+            else:
+                mc = Controller(fz, kb)
+                kb.start()
 
-    if session_options.get("interactive"):
-        # initialise controller
-        try:
-            kb = KeyPress()
-        except ImportError, e:
-            raise FuzzException(FuzzException.FATAL, "Error importing necessary modules for interactive mode: %s" % str(e))
-        else:
-            mc = Controller(fz, kb)
-            kb.start()
+        printer = Facade().get_printer(session_options.get("printer_tool"))
+        printer.header(fz.genReq.stats)
 
-    printer = Facade().get_printer(session_options.get("printer_tool"))
-    printer.header(fz.genReq.stats)
+        for res in fz:
+            printer.result(res) if res.is_visible else printer.noresult(res)
 
-    for res in fz:
-        printer.result(res) if res.is_visible else printer.noresult(res)
-
-    printer.footer(fz.genReq.stats)
+        printer.footer(fz.genReq.stats)
 except FuzzException, e:
     print "\nFatal exception: %s" % e.msg
     if fz: fz.cancel_job()
